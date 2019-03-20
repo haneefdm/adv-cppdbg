@@ -1,7 +1,7 @@
 {
 	"name": "adv-cppdbg",
 	"displayName": "adv-cppdbg",
-	"description": "Adding advanced features for C/C++ debug already provided by vscode-cpptools",
+	"description": "VSCode Extension for advanced C/C++ debugging",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.32.0"
