@@ -6,11 +6,13 @@
 	"engines": {
 		"vscode": "^1.32.0"
 	},
-	"categories": [
-		"Other"
-	],
 	"activationEvents": [
+		"onDebugResolve:cppdbg",
 		"onCommand:extension.helloWorld"
+	],
+	"categories": [
+		"Debuggers",
+		"Other"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -31,6 +33,8 @@
 	"devDependencies": {
 		"typescript": "^3.3.1",
 		"vscode": "^1.1.28",
+		"vscode-debugadapter": "~1.33.0",
+		"vscode-debugprotocol": "~1.33.0",
 		"tslint": "^5.12.1",
 		"@types/node": "^10.12.21",
 		"@types/mocha": "^2.2.42"
