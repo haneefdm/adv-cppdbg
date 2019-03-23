@@ -30,31 +30,36 @@ export class MonitorDbgEvents {
         this.consoleLog('Debug Custom Event' + ev);
     }
 
-    static lastTextInput : string = "-exec -data-list-register-names";
+    static lastTextInput = "-exec -data-list-register-names";
+    static noInput = true;
     static async getInput() : Promise<string> {
+        if (MonitorDbgEvents.noInput) {
+            return new Promise((resolve) => {resolve(MonitorDbgEvents.lastTextInput);});
+        }
+
         let ret : string = '';
         let txt = await vscode.window.showInputBox({value: MonitorDbgEvents.lastTextInput, prompt: 'Enter debugger command'});
         if (!txt) {
             txt = 'ERR: no text';
-        } else if (txt === '') {
-            txt = 'ERR: empty';
         } else {
             MonitorDbgEvents.lastTextInput = txt;
             ret = txt;
+            // Display a message box to the user
+            vscode.window.showInformationMessage('Hello World! ' + txt);
+            console.log("Command activated: Hello world " + txt);
         }
-    
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World! ' + txt);
-        console.log("Command activated: Hello world " + txt);
-
         return new Promise((resolve) => {resolve(ret);});
     }
 
     static async doIt(text: string) {
         const session = vscode.debug.activeDebugSession;
-        if (session) {      // Make sure we still have a session
+        if (session && text) {      // Make sure we still have a session
+            // The following gets me the right result
             const sTrace = await session.customRequest('stackTrace', { threadId: 1 });
-            const frameId = sTrace.stackFrames[0].id;
+            const frameId = sTrace.stackFrames[0].id; 
+
+            // The following does execute but the results are printed to screen rather than
+            // returning the result
             const arg : DebugProtocol.EvaluateArguments = {expression: text, frameId: frameId};
             const response = await session.customRequest('evaluate', arg);
             console.log(response.result);
