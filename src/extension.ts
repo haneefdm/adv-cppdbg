@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as monitor from './monitor';
+//import {CppToolsApi, Version, CustomConfigurationProvider, getCppToolsApi} from 'vscode-cpptools';
 
 var dbgMonitor : monitor.MonitorDbgEvents;
 // this method is called when your extension is activated
