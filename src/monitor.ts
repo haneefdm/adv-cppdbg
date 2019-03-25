@@ -1,3 +1,9 @@
+///
+/// This is in no way production ready code and will be split up into
+/// multiple re-usable files. It is currently a demo for what is possible.
+/// Until we have proper APIs from VSCode, it is neither fully functional
+/// *manual* refresh required, nor is it very efficient
+///
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { DebugSession, InitializedEvent } from 'vscode-debugadapter';
@@ -71,7 +77,7 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
         console.log('RegisterView got event');
     }
 
-    private async _tryInitialize(names: string[], frameId: any, hint?: string) {
+    private async _tryInitialize(names: string[], frameId: any, arch: string, hint?: string) {
         if (!this.initialized && vscode.debug.activeDebugSession) {
             hint = hint ? hint : names[0];
             hint = '$' + hint;
@@ -87,10 +93,11 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
                             this.items.push(new MyTreeNode(name));
                         }
                         this.initialized = true;
+                        console.log('adv-cppdbg: It looks like the CPU type is ' + arch + '.');
                     }
                 }
             } catch(e) {
-                console.log('_tryInitialize: expression ' + hint + ' failed: ', e);
+                console.log('adv-cppdbg: It does not appear to be an ' + arch + ' CPU type.');
             }
         }
     }
@@ -103,9 +110,9 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
         */
        if  (!this.initialized)  {
             this.deInitialize() ;       // Just make sure
-            await this._tryInitialize(RegisterView.armRegs, frameId, 'lr');
-            await this._tryInitialize(RegisterView.x64Regs, frameId);
-            await this._tryInitialize(RegisterView.x32Regs, frameId);
+            await this._tryInitialize(RegisterView.armRegs, frameId, 'ARM', 'lr');
+            await this._tryInitialize(RegisterView.x64Regs, frameId, 'x64');
+            await this._tryInitialize(RegisterView.x32Regs, frameId, 'x32');
 
             // We tried everything, still not good pretend like there are no registers and not
             // slow down future queries in a debug session.
@@ -120,6 +127,9 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
     }
 
     async updateRegisters() {
+        if (this.initialized && (this.regnames.length === 0)) {
+            return ;
+        }
         if (vscode.debug.activeDebugSession) {      // Make sure we still have a session
             // Wish I can skip this? I don't need a thread or frame id for global references but API demands it??
             let frameId = 0 ;
