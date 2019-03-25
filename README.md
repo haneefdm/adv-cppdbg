@@ -18,11 +18,11 @@ Display the CPU registers for the program being debugged. Current state is that 
 
 To use this feature, you have to be in paused state and using the Command Palette, run the command 'Adv-Cppdbg: Refresh'
 
-### Memory Windows
+### Memory Windows (coming)
 
-One or more windows to show a range of memory. Right now, you can do it in the **Watch**
+One or more windows to show a range of memory. Right now, you can do it in the **Watch** window using an appropriate C expression
 
-### Disassembly Window
+### Disassembly Window (maybe)
 
 This is a much more ambitious feature for those focused on performance and compiler efficiency and how their C/C++ code translates into machine code
 
