@@ -124,6 +124,7 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
             // Wish I can skip this? I don't need a thread or frame id for global references but API demands it??
             let frameId = 0 ;
             try {
+                // Yeah, unfortunately, thread-ids do not always start at 1. They can be like 5000
                 const threads = await vscode.debug.activeDebugSession.customRequest('threads', {});
                 const threadId = threads.threads[0].id;
                 const sTrace = await vscode.debug.activeDebugSession.customRequest('stackTrace', { threadId: threadId });

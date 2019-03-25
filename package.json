@@ -18,8 +18,8 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
+				"command": "adv-cpp.refresh",
+				"title": "Adv-Cppdbg: Refresh"
 			}
 		],
 		"views": {
