@@ -21,7 +21,16 @@
 				"command": "extension.helloWorld",
 				"title": "Hello World"
 			}
-		]
+		],
+		"views": {
+			"debug": [
+				{
+					"id": "adv-cppdbg.registers",
+					"name": "Registers",
+					"when": "debugType == cppdbg"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -38,6 +47,7 @@
 		"vscode-debugprotocol": "~1.33.0",
 		"tslint": "^5.12.1",
 		"@types/node": "^10.12.21",
-		"@types/mocha": "^2.2.42"
+		"@types/mocha": "^2.2.42",
+		"performance-now": "^2.1.0"
 	}
 }
