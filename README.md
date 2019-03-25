@@ -20,11 +20,11 @@ To use this feature, you have to be in paused state and using the Command Palett
 
 ### Memory Windows (coming)
 
-One or more windows to show a range of memory. Right now, you can do it in the **Watch** window using an appropriate C expression
+One or more windows to show a range of memory. Right now, you can do it in the **Watch** window using an appropriate C expression. We will implement memory windows is only if we can do registers properly and efficiently.
 
 ### Disassembly Window (maybe)
 
-This is a much more ambitious feature for those focused on performance and compiler efficiency and how their C/C++ code translates into machine code
+This is a much more ambitious feature for those focused on performance and compiler efficiency and how their C/C++ code translates into machine code. We will also need to do stepi/nexti (assembly level step and next) whch the VSCode API/protocol does not support yet.
 
 ## Requirements
 
