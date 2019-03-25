@@ -41,7 +41,7 @@ int main()
 
 	// This thread is launched by using 
 	// function pointer as callable 
-	thread th1(foo, 3); 
+	thread th1(foo, 3);
 
 	// This thread is launched by using 
 	// function object as callable 

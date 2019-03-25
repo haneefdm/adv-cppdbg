@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch",
+            "name": "(gdb/lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
             "args": [],
@@ -11,7 +11,14 @@
             "program": "${workspaceFolder}/bin/main",
             "environment": [],
             "externalConsole": true,
-            "MIMode": "lldb",
+            "MIMode": "gdb",
+            "preLaunchTask": "Build C++ project",
+            "windows": {
+                "program": "${workspaceFolder}/bin/main.exe",
+            },
+            "osx": {
+                "MIMode": "lldb",
+            },
             "logging" : {
                 "trace": true,
                 "traceResponse": false, // turn this off for less output
@@ -20,19 +27,6 @@
                 "moduleLoad": true,
                 "exceptions": true
             }
-        },
-        {
-            "name": "C++ Debug (gdb)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bin/main",
-            "preLaunchTask": "Build C++ project",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": true,
-            "MIMode": "gdb"
         }
     ]
 }
