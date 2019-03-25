@@ -2,9 +2,9 @@
 
 This extension is intended to provide features that the default [vscode-cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) does not for C/C++ development. Main intent is to provide a view for CPU registers, memory windows and perhaps a disassbmly window. It is intended to co-exist (and supplement) with vscode-cpptools
 
-    **This is not yet available on the market place so, you have to download the source code and build+experiment with it. Not an easy task. Will see what I can do about that**
+This is not yet available on the market place so, you have to download the source code and build+experiment with it. Not an easy task. Will see what I can do about that
 
-    *We may abandon this project if we cannot get support for events to do auto-refresh*
+We may abandon this project if we cannot get support for events to do auto-refresh
 
 ## Features
 
