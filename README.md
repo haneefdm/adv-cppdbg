@@ -8,7 +8,7 @@ This extension is intended to provide features that the default [vscode-cpptools
 
 ## Features
 
-These are the planned features. These features are intended to work for programs running on a local machine or on a remote machine or a development board with totally different CPU architectures or OSes
+The following features are intended to work for programs running on a local machine or on a remote machine or a development board with totally different CPU architectures or OSes
 
 ### Register View
 
