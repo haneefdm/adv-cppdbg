@@ -1,10 +1,12 @@
 # adv-cppdbg README
 
-This extension is intended to provide features that the default [vscode-cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) does not for C/C++ development. Main intent is to provide a view for CPU registers, memory windows and perhaps a disassbmly window. It is intended to co-exist (and supplement) with vscode-cpptools
+This extension is intended to provide features that the default [vscode-cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) does not for C/C++ development. Main intent is to provide a view for CPU registers, memory windows and perhaps a disassbmly window. It is intended to supplement the vscode-cpptools extension
 
-This is not yet available on the market place so, you have to download the source code and build+experiment with it. Not an easy task. Will see what I can do about that
+This is not yet available on the market place so, you have to download the vsix file and install it manually.
 
-We may abandon this project if we cannot get support for events to do auto-refresh
+    code --install-extension filename.vsix.
+
+We may abandon this project if we cannot implement memory and/or disassembly windows. We may need help from the core VSCode team to get those implemented. We can do everything if we write our own adapter but that is a big task. At least, for now registers view works pretty well and auto-refreshes thanks to a MS engineer guiding me.
 
 ## Features
 
@@ -12,11 +14,9 @@ The following features are intended to work for programs running on a local mach
 
 ### Register View
 
-Display the CPU registers for the program being debugged. Current state is that it kind of works but you have to trigger a manual refresh. As an extension, I have no idea if the debugger is in paused state or running or when to refresh the registers view. VSCode folks have to help provide events for such things and I have requests for the same. Intention is to automatically refresh and be able to view and maybe even modify register values.
+The Registers VIew diplays all the registers reported by gdb/lldb. The are not grouped or filtered. We may add a feature for you to specify what to filter. You cannot yet change register values.
 
 ![Registers](images/regpanel.jpg)
-
-To use this feature, you have to be in paused state and using the Command Palette, run the command 'Adv-Cppdbg: Refresh'
 
 ### Memory Windows (coming)
 
@@ -28,22 +28,31 @@ This is a much more ambitious feature for those focused on performance and compi
 
 ## Requirements
 
-None. The extention automatically triggers when it detects that a debug session of type 'cppdbg' (lldb/gdb) has started.
+None. The extention automatically triggers when it detects that a debug session of type 'cppdbg' (lldb/gdb) has started. Will add cppvsdbg shortly.
 
 ## Extension Settings
 
-Nothing yet, but I am sure they are coming. Ideas welcome. For instance you may not want to look at all the registers and specify your subset. Perhaps disable the extension.
+There are two settings currently available (in your .vscode/settings.json)
+
+"adv-cppdbg.debugLevel": integer
+
+Must be >= 0. Default=0
+
+You can use this to get information about what the extension is doing. Currently it is 0 for silent, 1 for small amount information and 2 for bit more involved debug output.
+
+"adv-cppdbg.disableRegisterView": boolean
+Default=false
 
 ## Known Issues
 
-There is no auto refresh. I also think it could be faster if I am able to retrieve information from gdb/lldb in bulk. Currently, I have to query one register at a time because of how the VSCode APIs work.
+No way to change register values. It is a prototype.
 
 ## Release Notes
 
-No release yet.
+Not release yet.
 
-### 0.0.1
+### 0.0.2
 
-Barely functional register view. Works with gdb/lldb. Tested on Mac x64 and ARM processors.
+Mostly functional register view. Works with gdb/lldb. Tested on Mac x64 and ARM processors.
 
 -----------------------------------------------------------------------------------------------------------

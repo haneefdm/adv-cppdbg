@@ -2,7 +2,8 @@
 	"name": "adv-cppdbg",
 	"displayName": "adv-cppdbg",
 	"description": "VSCode Extension for advanced C/C++ debugging",
-	"version": "0.0.1",
+	"version": "0.0.2",
+	"publisher": "haneefdm",
 	"engines": {
 		"vscode": "^1.32.0"
 	},
@@ -13,7 +14,7 @@
 	},
 	"activationEvents": [
 		"onDebugResolve:cppdbg",
-		"onCommand:extension.helloWorld"
+		"onCommand:adv-cppdbg.hello"
 	],
 	"categories": [
 		"Debuggers",
@@ -35,6 +36,22 @@
 					"when": "debugType == cppdbg"
 				}
 			]
+		},
+		"configuration": {
+			"type": "object",
+			"title": "Advanced CppDbg Configuration",
+			"properties": {
+				"adv-cppdbg.debugLevel": {
+					"type": "integer",
+					"default": 0,
+					"description": "Enables printing extension debugging information to the console. Valid values 0-3"
+				},
+				"adv-cppdbg.disableRegisterView": {
+					"type": "boolean",
+					"default": false,
+					"description": "Disables showing the Registers View"
+				}
+			}
 		}
 	},
 	"scripts": {

@@ -19,7 +19,7 @@
             "osx": {
                 "MIMode": "lldb",
             },
-            "logging" : {
+            "loggingx" : {
                 "trace": true,
                 "traceResponse": false, // turn this off for less output
                 "engineLogging": true,

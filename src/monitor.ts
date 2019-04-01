@@ -6,9 +6,9 @@
 ///
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { DebugSession, InitializedEvent } from 'vscode-debugadapter';
-import { resolve } from 'path';
-import { domainToASCII } from 'url';
+//import { DebugSession, InitializedEvent } from 'vscode-debugadapter';
+import { CppDbgAdapterTrackerFactory, CppDbgDebugAdapterTracker, DbgAdapterState } from './da-tracker';
+import { ConfigVars } from './config';
 
 export class MyTreeNode extends vscode.TreeItem {
     value: string = ':-((';
@@ -46,13 +46,16 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
         "eax","ecx","edx","ebx","esp","ebp","esi","edi","eip",
         "eflags","cs","ss","ds","es","fs","gs"
     ];
-    private regnames: string[] = [] ;
+
+    private orig_regnames: string[] = [];           // Original list of names as reported by GDB. Can have empty strings
+    private regnames: string[] = [] ;               // non-empty names
+    private regmap = new Map<string, number>();     // non-empty name to index in regnames/items
     public initialized: boolean = false ;
     public onDidChangeTreeDataEmitter: vscode.EventEmitter<MyTreeNode | undefined> = new vscode.EventEmitter<MyTreeNode | undefined>();
     public readonly onDidChangeTreeData: vscode.Event<MyTreeNode | undefined> = this.onDidChangeTreeDataEmitter.event;
     items: MyTreeNode[] = [] ;
 
-    constructor() {
+    constructor(protected DAtracker: CppDbgDebugAdapterTracker) {
         this.onDidChangeTreeData(this.refresh.bind(this));
     }
 
@@ -74,7 +77,9 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
     }
 
     refresh() {
-        console.log('RegisterView got event');
+        if (ConfigVars.debugLevel > 0) {
+            console.log('RegisterView got event');
+        }
     }
 
     private async _tryInitialize(names: string[], frameId: any, arch: string, hint?: string) {
@@ -110,17 +115,46 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
         */
        if  (!this.initialized)  {
             this.deInitialize() ;       // Just make sure
-            await this._tryInitialize(RegisterView.armRegs, frameId, 'ARM', 'lr');
-            await this._tryInitialize(RegisterView.x64Regs, frameId, 'x64');
-            await this._tryInitialize(RegisterView.x32Regs, frameId, 'x32');
+            if (vscode.debug.activeDebugSession) {
+                this.DAtracker.trackRegisterQueries = true;
+                const arg : DebugProtocol.EvaluateArguments = {expression: '', frameId: frameId, context:'hover'};
+                arg.expression = '-exec -data-list-register-names';
+                await vscode.debug.activeDebugSession.customRequest('evaluate', arg);
+                this.orig_regnames = this.DAtracker.trackedRegisterNames;
+                const len = this.orig_regnames.length;
+                for (let i = 0; i < len; i++) {
+                    const rname = this.orig_regnames[i];
+                    if (rname !== '') {
+                        this.regmap.set(rname, this.regnames.length);
+                        this.regnames.push(rname);
+                        this.items.push(new MyTreeNode(rname));
+                        if (ConfigVars.debugLevel > 1) {
+                            console.log(rname, i);
+                        }
+                    }
+                }
+            }
+            this.initialized = true;
+            return;
 
+            /* NOT REACHED */
+            /*
+            if (vscode.debug.activeDebugSession) {
+                await this._tryInitialize(RegisterView.armRegs, frameId, 'ARM', 'lr');
+                await this._tryInitialize(RegisterView.x64Regs, frameId, 'x64');
+                await this._tryInitialize(RegisterView.x32Regs, frameId, 'x32');
+            }
+            
             // We tried everything, still not good pretend like there are no registers and not
             // slow down future queries in a debug session.
             this.initialized = true;
+            */
        }
     }
 
     deInitialize() {
+        this.regmap.clear();
+        this.orig_regnames = [];
         this.regnames = [];
         this.items = [];
         this.initialized = false;     
@@ -130,6 +164,7 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
         if (this.initialized && (this.regnames.length === 0)) {
             return ;
         }
+
         if (vscode.debug.activeDebugSession) {      // Make sure we still have a session
             // Wish I can skip this? I don't need a thread or frame id for global references but API demands it??
             let frameId = 0 ;
@@ -144,8 +179,45 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
                 return;
             }
 
-            await this.initialize(frameId);
+            if  (!this.initialized)  {
+                await this.initialize(frameId);
+            }
 
+            if (vscode.debug.activeDebugSession) {      // Make sure we still have a session
+                const marker = 'RegQuery';
+                if (ConfigVars.debugLevel > 0) {
+                    console.time(marker);
+                }
+
+                this.DAtracker.trackRegisterQueries = true;
+                const arg : DebugProtocol.EvaluateArguments = {expression: '', frameId: frameId, context:'hover'};
+                arg.expression = '-exec -data-list-register-values N';
+                await vscode.debug.activeDebugSession.customRequest('evaluate', arg);
+                for (let [key, value] of this.DAtracker.trackedRegisterValues) {
+                    const rname = this.orig_regnames[key];
+                    const ix = this.regmap.get(rname);
+                    if (ix !== undefined) {
+                        this.items[ix].value = value;
+                        if (ConfigVars.debugLevel > 1) {
+                            console.log('RegNum=', key, 'RegName=', rname, 'value=', value, 'MapIx=', ix);
+                        }
+                    } else {
+                        console.error('Error finding register value for reg=' + rname + ' ' + key);
+                    }
+                }
+                this.DAtracker.trackRegisterQueries = false;
+                if (ConfigVars.debugLevel > 0) {
+                    console.timeEnd(marker);
+                }
+                this.onDidChangeTreeDataEmitter.fire();
+                if (ConfigVars.debugLevel > 0) {
+                    console.log('Done listing registers');
+                }
+                return;
+            }
+
+            /* NOT REACHED */
+            /*
             const marker = 'RegQuery';
             console.time(marker);
             const arg : DebugProtocol.EvaluateArguments = {expression: '', frameId: frameId, context:'repl'};
@@ -164,6 +236,7 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
             console.timeEnd(marker);
             this.onDidChangeTreeDataEmitter.fire();
             console.log('Done listing registers');
+            */
         }
     }
 }
@@ -171,64 +244,56 @@ export class RegisterView implements vscode.TreeDataProvider<MyTreeNode> {
 export class MonitorDbgEvents {
     public isDebugSessionRunning : boolean = false;
     public myid : string = 'adv-cppdbg: MonitorDbgEvents';
-    public registerProvider : RegisterView = new RegisterView();
+    public registerProvider : RegisterView;
 
     constructor(protected context: vscode.ExtensionContext) {
+        const fac = new CppDbgAdapterTrackerFactory();
+        vscode.debug.registerDebugAdapterTrackerFactory('cppdbg', fac);
+        fac.DATracker.onStateChanged.event(this.onDebuggerStateChanged.bind(this));
+        
+        this.registerProvider = new RegisterView(fac.DATracker);
+
         context.subscriptions.push(
             vscode.debug.onDidStartDebugSession(this.onDebugStarted.bind(this)),
             vscode.debug.onDidTerminateDebugSession(this.onDebugTerminated.bind(this)),
             vscode.debug.onDidReceiveDebugSessionCustomEvent(this.onCustomEvent.bind(this)),
             vscode.window.registerTreeDataProvider('adv-cppdbg.registers', this.registerProvider)
         );
-     }
+    }
 
     protected onDebugStarted(session: vscode.DebugSession) {
         this.isDebugSessionRunning = true;
-        this.consoleLog('Debug Started');
-    }
+        if (ConfigVars.debugLevel > 0) {
+            this.consoleLog('Debug Started');
+        }
+   }
 
     protected onDebugTerminated(session: vscode.DebugSession) {
         this.isDebugSessionRunning = false;
         this.registerProvider.deInitialize();
-        this.consoleLog('Debug Terminated');
+        if (ConfigVars.debugLevel > 0) {
+            this.consoleLog('Debug Terminated');
+        }
     }
 
     protected onCustomEvent(ev: vscode.DebugSessionCustomEvent) {
-        this.consoleLog('Debug Custom Event' + ev);
+        if (ConfigVars.debugLevel > 0) {
+            this.consoleLog('Debug Custom Event' + ev);
+        }
     }
 
-    /* async getRegisters(text: string) {
-        const session = vscode.debug.activeDebugSession;
-        if (session && text) {      // Make sure we still have a session
-            // The following gets me the right result
-            const sTrace = await session.customRequest('stackTrace', { threadId: 1 });
-            const frameId = sTrace.stackFrames[0].id; 
-
-            const marker = 'RegQuery';
-            console.time(marker);
-            const arg : DebugProtocol.EvaluateArguments = {expression: '', frameId: frameId, context:'repl'};
-            let ix = 0 ;
-            for (let reg of MonitorDbgEvents.x64Regs) {
-                arg.expression = '$' + reg ;
-                const regval = await session.customRequest('evaluate', arg);
-                this.registerProvider.items[ix++].value = regval.result;
-                //console.log(reg + '=' + regval.result) ;
+    protected onDebuggerStateChanged(tracker: CppDbgDebugAdapterTracker) {
+        if (!ConfigVars.disableRegisterView) {
+            if (ConfigVars.debugLevel > 0) {
+                console.log('Debugger Status Changed Event ', DbgAdapterState[tracker.dbgRunningState]);
             }
-            console.timeEnd(marker);
-            this.registerProvider._onDidChangeTreeData.fire();
-            console.log('Done listing registers');
-
-            // The following does execute but the results are printed to screen rather than
-            // returning the result
-            // I tried many variations of arguments and contexts types
-            // arg.expression = '-exec -data-list-register-values N';
-            // session.customRequest('evaluate', arg).then((response) => {
-            //      console.log(response.result); 
-            // });
+            if (tracker.dbgRunningState === DbgAdapterState.Stopped) {
+                this.registerProvider.updateRegisters();
+            }
         }
-    } */
+    }
 
-    public sendRequest(req:string) {
+    public sendRequest(req?:string) {
         if (this.isDebugSessionRunning) {
             this.registerProvider.updateRegisters();
         } else {

@@ -2,5 +2,7 @@
     "files.associations": {
         "*.tpp": "cpp"
     },
-    "terminal.integrated.shell.windows": "cmd.exe"
+    "terminal.integrated.shell.windows": "cmd.exe",
+    "adv-cppdbg.debugLevel":0,
+    "adv-cppdbg.disableRegisterView": false
 }
