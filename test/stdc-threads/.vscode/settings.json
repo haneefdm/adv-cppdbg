@@ -3,6 +3,6 @@
         "*.tpp": "cpp"
     },
     "terminal.integrated.shell.windows": "cmd.exe",
-    "adv-cppdbg.debugLevel":0,
+    "adv-cppdbg.debugLevel":2,
     "adv-cppdbg.disableRegisterView": false
 }
