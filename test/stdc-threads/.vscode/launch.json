@@ -19,7 +19,7 @@
             "osx": {
                 "MIMode": "lldb",
             },
-            "loggingx" : {
+            "loggingx" : {    // Fix the typo to enable logging
                 "trace": true,
                 "traceResponse": false, // turn this off for less output
                 "engineLogging": true,
